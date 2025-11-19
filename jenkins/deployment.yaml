@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: han-ip-log
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: web
+        # ArgoCD는 이 부분이 바뀌면 작동합니다.
+        image: 192.168.0.183/jenkins/han-ip-log:7
