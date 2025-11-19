@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Harbor 레지스트리 주소 및 이미지 이름 설정
         HARBOR_REGISTRY = '192.168.0.183'
-        IMAGE_NAME = 'han-ip-log'
+        IMAGE_NAME = 'jenkins/han-ip-log'
         // 젠킨스에 등록한 Credential ID
         HARBOR_CREDENTIALS_ID = 'harbor-creds' 
     }
