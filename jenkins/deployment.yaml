@@ -9,4 +9,4 @@ spec:
       containers:
       - name: web
         # ArgoCD는 이 부분이 바뀌면 작동합니다.
-        image: 192.168.0.183/jenkins/han-ip-log:7
+        image: 192.168.0.183/jenkins/han-ip-log:11
