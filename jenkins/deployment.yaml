@@ -3,10 +3,17 @@ kind: Deployment
 metadata:
   name: han-ip-log
 spec:
-  replicas: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: han-ip-log  # [1] 관리자가 찾을 이름표
   template:
+    metadata:
+      labels:
+        app: han-ip-log  # [2] 실제 파드에 붙일 이름표 (위와 100% 똑같아야 함)
     spec:
       containers:
       - name: web
-        # ArgoCD는 이 부분이 바뀌면 작동합니다.
         image: 192.168.0.183/jenkins/han-ip-log:11
+        ports:
+        - containerPort: 80 # (Flask 앱 포트가 5000번이면 5000으로 수정)
