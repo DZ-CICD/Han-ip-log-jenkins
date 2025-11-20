@@ -36,7 +36,7 @@ pipeline {
                         withSonarQubeEnv('sonar-server') { 
                             sh """
                             ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.organization=DZ-CICD \
+                            -Dsonar.organization=dz-cicd \
                             -Dsonar.projectKey=DZ-CICD_Han-ip-log-jenkins \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=https://sonarcloud.io \
