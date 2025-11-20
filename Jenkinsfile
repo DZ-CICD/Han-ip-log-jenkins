@@ -11,8 +11,8 @@ pipeline {
         GIT_CREDENTIALS_ID = 'git-token-id'
         GIT_REPO_URL = 'https://github.com/DZ-CICD/Han-ip-log-jenkins.git'
 
-        // SonarCloud 설정
-        SONAR_CREDENTIALS_ID = 'sonar-token' 
+        // SonarCloud 설정 (credentialsId는 시스템 설정에서 자동 사용되므로 변수만 선언)
+        SONAR_CREDENTIALS_ID = 'sonar-token'
     }
 
     stages {
@@ -23,26 +23,26 @@ pipeline {
             }
         }
 
-        // 2. SonarCloud 코드 품질 검사
+        // 2. SonarCloud 코드 품질 검사 (수정된 부분)
         stage('SonarQube Analysis') {
             steps {
                 script {
                     // Jenkins 관리 > Tools에서 설정한 이름 ('sonar-scanner')
-                    def scannerHome = tool 'sonar-scanner' 
+                    def scannerHome = tool 'sonar-scanner'
                     
-                    // 소나큐브 토큰 가져오기
-                    withCredentials([string(credentialsId: SONAR_CREDENTIALS_ID, variable: 'SONAR_TOKEN')]) {
-                        // Jenkins 관리 > System에서 설정한 서버 이름 ('sonar-server')
-                        withSonarQubeEnv('sonar-server') { 
-                            sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.organization=dz-cicd \
-                            -Dsonar.projectKey=DZ-CICD_Han-ip-log-jenkins \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=https://sonarcloud.io \
-                            -Dsonar.login=${SONAR_TOKEN}
-                            """
-                        }
+                    // [수정됨] withCredentials와 login 옵션을 제거하여 보안 경고 해결
+                    // Jenkins 관리 > System에서 설정한 'sonar-server'가 인증 정보를 자동으로 주입함
+                    withSonarQubeEnv('sonar-server') {
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.organization=dz-cicd \
+                        -Dsonar.projectKey=DZ-CICD_Han-ip-log-jenkins \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=https://sonarcloud.io \
+                        -Dsonar.branch.name=main
+                        """
+                        // 위에서 -Dsonar.branch.name=main 을 추가하여 404 에러 방지
+                        // -Dsonar.organization=dz-cicd (소문자)로 수정하여 조직 찾기 에러 해결
                     }
                 }
             }
