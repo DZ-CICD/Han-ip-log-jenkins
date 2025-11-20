@@ -11,7 +11,7 @@ pipeline {
         GIT_CREDENTIALS_ID = 'git-token-id'
         GIT_REPO_URL = 'https://github.com/DZ-CICD/Han-ip-log-jenkins.git'
 
-        // SonarCloud 설정 (credentialsId는 시스템 설정에서 자동 사용되므로 변수만 선언)
+        // SonarCloud 설정
         SONAR_CREDENTIALS_ID = 'sonar-token'
     }
 
@@ -23,26 +23,25 @@ pipeline {
             }
         }
 
-        // 2. SonarCloud 코드 품질 검사 (수정된 부분)
+        // 2. SonarCloud 코드 품질 검사 (최종 수정됨)
         stage('SonarQube Analysis') {
             steps {
                 script {
                     // Jenkins 관리 > Tools에서 설정한 이름 ('sonar-scanner')
                     def scannerHome = tool 'sonar-scanner'
-                    
-                    // [수정됨] withCredentials와 login 옵션을 제거하여 보안 경고 해결
-                    // Jenkins 관리 > System에서 설정한 'sonar-server'가 인증 정보를 자동으로 주입함
+
+                    // [수정 포인트 1] withCredentials 삭제 (보안 경고 해결)
+                    // [수정 포인트 2] withSonarQubeEnv가 토큰을 자동으로 주입해줌
                     withSonarQubeEnv('sonar-server') {
                         sh """
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.organization=dz-cicd \
                         -Dsonar.projectKey=DZ-CICD_Han-ip-log-jenkins \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.branch.name=main
+                        -Dsonar.host.url=https://sonarcloud.io
                         """
-                        // 위에서 -Dsonar.branch.name=main 을 추가하여 404 에러 방지
-                        // -Dsonar.organization=dz-cicd (소문자)로 수정하여 조직 찾기 에러 해결
+                        // [수정 포인트 3] -Dsonar.branch.name=main 삭제 (첫 분석 충돌 방지)
+                        // [수정 포인트 4] -Dsonar.organization=dz-cicd (소문자 유지)
                     }
                 }
             }
@@ -72,18 +71,18 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                     script {
                         echo "Updating deployment.yaml..."
-                        
+
                         // Git 유저 설정
                         sh "git config user.email 'rlaehgns745@gmail.com'"
                         sh "git config user.name 'kdh5018'"
-                        
-                        // deployment.yaml 파일의 이미지 태그 수정 (jenkins 폴더 안에 있다고 가정)
+
+                        // deployment.yaml 파일의 이미지 태그 수정
                         sh "sed -i 's|image: .*|image: ${HARBOR_REGISTRY}/${IMAGE_NAME}:${env.BUILD_NUMBER}|' jenkins/deployment.yaml"
-                        
+
                         // 변경 확인
                         sh "cat jenkins/deployment.yaml"
-                        
-                        // Git Push (무한 루프 방지를 위해 [skip ci] 포함)
+
+                        // Git Push
                         sh "git add jenkins/deployment.yaml"
                         sh "git commit -m 'Update image tag to ${env.BUILD_NUMBER} [skip ci]'"
                         sh "git push https://${GIT_USER}:${GIT_TOKEN}@github.com/DZ-CICD/Han-ip-log-jenkins.git HEAD:main"
@@ -92,7 +91,7 @@ pipeline {
             }
         }
 
-        // 5. 배포 알림 (ArgoCD 자동 동기화 대기)
+        // 5. 배포 알림
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
